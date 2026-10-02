@@ -75,6 +75,7 @@ public static class ReplayBuilder
         if (type == PieceType.Bishop) return PieceKind.Bishop;
         if (type == PieceType.Rook) return PieceKind.Rook;
         if (type == PieceType.Queen) return PieceKind.Queen;
-        return PieceKind.King;
+        if (type == PieceType.King) return PieceKind.King;
+        throw new ArgumentOutOfRangeException(nameof(type), type, "Unknown piece type.");
     }
 }
