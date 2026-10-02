@@ -75,6 +75,8 @@ public sealed class ReplayScreen(
         AnsiConsole.MarkupLine($" {FormatPlayer(top)}");
         AnsiConsole.MarkupLine("          vs");
         AnsiConsole.MarkupLine($"   {FormatPlayer(bottom)}");
+        AnsiConsole.MarkupLine($"   [grey]{Markup.Escape(FormatGameInfo(game))}[/]");
+        AnsiConsole.MarkupLine($"   [grey]{Markup.Escape(game.Url)}[/]");
         AnsiConsole.WriteLine();
         AnsiConsole.Markup(BoardRenderer.Render(snapshot, flipped));
         AnsiConsole.WriteLine();
@@ -93,6 +95,17 @@ public sealed class ReplayScreen(
         var isFocusPlayer = string.Equals(player.Username, focusUsername, StringComparison.OrdinalIgnoreCase);
 
         return isFocusPlayer ? $"[bold yellow]{Markup.Escape(label)}[/]" : $"[bold]{Markup.Escape(label)}[/]";
+    }
+
+    private static string FormatGameInfo(ChessGame game)
+    {
+        var timeClass = game.TimeClass.Length > 0
+            ? char.ToUpperInvariant(game.TimeClass[0]) + game.TimeClass[1..]
+            : "Unknown";
+        var rated = game.Rated ? "Rated" : "Casual";
+        var endTime = game.EndTime.LocalDateTime.ToString("yyyy-MM-dd HH:mm");
+
+        return $"{timeClass} · {rated} · {endTime}";
     }
 
     private static string FormatMove(BoardSnapshot snapshot)
