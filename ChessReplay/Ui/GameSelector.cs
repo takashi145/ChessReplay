@@ -34,7 +34,7 @@ public static class GameSelector
             var line = $"vs {Markup.Escape(opponent.Username),-16} {result,-6}";
             if (showTimeClass) line += $" {Markup.Escape(entry.Game.TimeClass),-8}";
             if (showMoveCount) line += $" {(entry.MoveCount is { } m ? $"{m} moves" : "? moves"),-10}";
-            if (showDate) line += $" {entry.Game.EndTime.LocalDateTime:yyyy-MM-dd HH:mm}";
+            if (showDate) line += $" {entry.Game.EndTime.UtcDateTime:yyyy-MM-dd HH:mm}";
 
             return $"{index + 1,3}. {line}";
         }

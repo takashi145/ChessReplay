@@ -22,7 +22,7 @@ public sealed class ChessComClient(VerboseLog log) : IDisposable
     public async Task<IReadOnlyList<GameArchive>> GetArchivesAsync(string username, CancellationToken ct)
     {
         var url = $"{BaseUrl}/player/{Uri.EscapeDataString(username)}/games/archives";
-        var dto = await GetAsync<ArchivesResponseDto>(url, username, ct);
+        var dto = await GetAsync<ArchivesResponseDto>(url, () => new PlayerNotFoundException(username), ct);
 
         return ParseArchives(dto.Archives)
             .OrderBy(a => a.Year)
@@ -47,7 +47,16 @@ public sealed class ChessComClient(VerboseLog log) : IDisposable
     public async Task<IReadOnlyList<ChessGame>> GetGamesAsync(string username, GameArchive archive, CancellationToken ct)
     {
         var url = $"{BaseUrl}/player/{Uri.EscapeDataString(username)}/games/{archive.Year:D4}/{archive.Month:D2}";
-        var dto = await GetAsync<GamesResponseDto>(url, username, ct);
+        GamesResponseDto dto;
+        try
+        {
+            dto = await GetAsync<GamesResponseDto>(url, () => new NoGamesFoundException(username, archive), ct);
+        }
+        catch (NoGamesFoundException)
+        {
+            await GetArchivesAsync(username, ct);
+            throw;
+        }
 
         return dto.Games
             .Where(g => !string.IsNullOrWhiteSpace(g.Pgn))
@@ -55,7 +64,7 @@ public sealed class ChessComClient(VerboseLog log) : IDisposable
             .ToList();
     }
 
-    private async Task<T> GetAsync<T>(string url, string username, CancellationToken ct)
+    private async Task<T> GetAsync<T>(string url, Func<Exception> onNotFound, CancellationToken ct)
     {
         log.Info($"GET {url}");
 
@@ -80,7 +89,7 @@ public sealed class ChessComClient(VerboseLog log) : IDisposable
         log.Info($"HTTP {(int)response.StatusCode} {response.StatusCode}");
 
         if (response.StatusCode == HttpStatusCode.NotFound)
-            throw new PlayerNotFoundException(username);
+            throw onNotFound();
 
         if (!response.IsSuccessStatusCode)
             throw new ChessComApiException(

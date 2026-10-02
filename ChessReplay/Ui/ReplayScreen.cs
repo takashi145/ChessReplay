@@ -103,7 +103,7 @@ public sealed class ReplayScreen(
             ? char.ToUpperInvariant(game.TimeClass[0]) + game.TimeClass[1..]
             : "Unknown";
         var rated = game.Rated ? "Rated" : "Casual";
-        var endTime = game.EndTime.LocalDateTime.ToString("yyyy-MM-dd HH:mm");
+        var endTime = game.EndTime.UtcDateTime.ToString("yyyy-MM-dd HH:mm") + " UTC";
 
         return $"{timeClass} · {rated} · {endTime}";
     }
