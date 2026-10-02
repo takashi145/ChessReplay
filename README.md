@@ -1,5 +1,7 @@
 # ChessReplay
 
+English | [日本語](README.ja.md)
+
 A tool to replay Chess.com games in the terminal.
 
 ## Installation
