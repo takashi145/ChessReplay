@@ -70,7 +70,7 @@ internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
         if (recent.Count == 0)
             throw new NoGamesFoundException(username);
 
-        SelectAndReplay($"{username} — Recent games", username, recent);
+        SelectAndReplay($"{username} — Recent games (UTC)", username, recent);
     }
 
     public async Task RunMonthAsync(string username, GameArchive archive, CancellationToken ct)
@@ -81,7 +81,7 @@ internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
         if (games.Count == 0)
             throw new NoGamesFoundException(username, archive);
 
-        SelectAndReplay($"{username} — Games in {archive}", username, games);
+        SelectAndReplay($"{username} — Games in {archive} (UTC)", username, games);
     }
 
     private void SelectAndReplay(string title, string username, IReadOnlyList<ChessGame> games)
