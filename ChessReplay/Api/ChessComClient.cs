@@ -47,7 +47,16 @@ public sealed class ChessComClient(VerboseLog log) : IDisposable
     public async Task<IReadOnlyList<ChessGame>> GetGamesAsync(string username, GameArchive archive, CancellationToken ct)
     {
         var url = $"{BaseUrl}/player/{Uri.EscapeDataString(username)}/games/{archive.Year:D4}/{archive.Month:D2}";
-        var dto = await GetAsync<GamesResponseDto>(url, () => new NoGamesFoundException(username, archive), ct);
+        GamesResponseDto dto;
+        try
+        {
+            dto = await GetAsync<GamesResponseDto>(url, () => new NoGamesFoundException(username, archive), ct);
+        }
+        catch (NoGamesFoundException)
+        {
+            await GetArchivesAsync(username, ct);
+            throw;
+        }
 
         return dto.Games
             .Where(g => !string.IsNullOrWhiteSpace(g.Pgn))
