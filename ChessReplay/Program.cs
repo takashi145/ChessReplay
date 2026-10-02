@@ -1,10 +1,13 @@
 using System.CommandLine;
+using System.Text;
 using ChessReplay;
 using ChessReplay.Api;
 using ChessReplay.Chess;
 using ChessReplay.Diagnostics;
 using ChessReplay.Models;
 using Spectre.Console;
+
+Console.OutputEncoding = Encoding.UTF8;
 
 var usernameArgument = new Argument<string>("username")
 {
