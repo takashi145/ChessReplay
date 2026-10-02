@@ -7,6 +7,15 @@
     <Nullable>enable</Nullable>
     <RootNamespace>ChessReplay</RootNamespace>
     <InvariantGlobalization>false</InvariantGlobalization>
+    <AssemblyName>chess-replay</AssemblyName>
+    <Version>0.2.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <DebugType>none</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
