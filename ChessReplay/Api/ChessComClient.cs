@@ -108,7 +108,8 @@ public sealed class ChessComClient(VerboseLog log) : IDisposable
         Rated: dto.Rated,
         White: new Player(dto.White.Username, dto.White.Rating, dto.White.Result),
         Black: new Player(dto.Black.Username, dto.Black.Rating, dto.Black.Result),
-        Url: dto.Url);
+        Url: dto.Url,
+        Rules: dto.Rules);
 
     public void Dispose() => httpClient.Dispose();
 }

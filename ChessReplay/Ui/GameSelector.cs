@@ -11,7 +11,7 @@ public static class GameSelector
 
     public readonly record struct Entry(ChessGame Game, int? MoveCount);
 
-    public static ChessGame? Select(string title, string focusUsername, IReadOnlyList<Entry> entries)
+    public static ChessGame? Select(string title, string focusUsername, IReadOnlyList<Entry> entries, int hiddenChess960 = 0)
     {
         if (entries.Count == 0)
             return null;
@@ -39,8 +39,13 @@ public static class GameSelector
             return $"{index + 1,3}. {line}";
         }
 
+        var summary = $"[grey]({entries.Count} games";
+        if (hiddenChess960 > 0)
+            summary += $",[/] [yellow]{hiddenChess960} hidden (Chess960 unsupported)[/][grey]";
+        summary += ")[/]";
+
         var prompt = new SelectionPrompt<int>()
-            .Title($"[bold]{Markup.Escape(title)}[/] [grey]({entries.Count} games)[/]")
+            .Title($"[bold]{Markup.Escape(title)}[/] {summary}")
             .PageSize(pageSize)
             .WrapAround(true)
             .UseConverter(FormatChoice);

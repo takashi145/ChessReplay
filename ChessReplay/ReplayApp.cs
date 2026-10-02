@@ -8,6 +8,8 @@ namespace ChessReplay;
 
 internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
 {
+    private const string Chess960Message = "Chess960 games are not supported yet.";
+
     public async Task RunLatestAsync(string username, CancellationToken ct)
     {
         var archives = await client.GetArchivesAsync(username, ct);
@@ -21,7 +23,7 @@ internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
             log.Info($"Archive {archives[i]}: {games.Count} games");
 
             if (games.Count > 0)
-                latest = games.OrderByDescending(g => g.EndTime).First();
+                latest = games.Where(g => !g.IsChess960).OrderByDescending(g => g.EndTime).FirstOrDefault();
         }
 
         Replay(latest ?? throw new NoGamesFoundException(username), username);
@@ -40,9 +42,10 @@ internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
             var games = await client.GetGamesAsync(username, archive, ct);
             log.Info($"Archive {archive}: {games.Count} games");
 
-            if (games.Count > 0)
+            var playable = games.Where(g => !g.IsChess960).ToList();
+            if (playable.Count > 0)
             {
-                Replay(games[Random.Shared.Next(games.Count)], username);
+                Replay(playable[Random.Shared.Next(playable.Count)], username);
                 return;
             }
         }
@@ -59,18 +62,32 @@ internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
             throw new NoGamesFoundException(username);
 
         var collected = new List<ChessGame>();
-        for (var i = archives.Count - 1; i >= 0 && collected.Count < count; i--)
+        var playableCount = 0;
+        for (var i = archives.Count - 1; i >= 0 && playableCount < count; i--)
         {
             var games = await client.GetGamesAsync(username, archives[i], ct);
             log.Info($"Archive {archives[i]}: {games.Count} games");
             collected.AddRange(games);
+            playableCount += games.Count(g => !g.IsChess960);
         }
 
-        var recent = collected.OrderByDescending(g => g.EndTime).Take(count).ToList();
-        if (recent.Count == 0)
+        var recent = new List<ChessGame>();
+        var hidden = 0;
+        foreach (var game in collected.OrderByDescending(g => g.EndTime))
+        {
+            if (game.IsChess960)
+                hidden++;
+            else if (recent.Count < count)
+                recent.Add(game);
+
+            if (recent.Count == count)
+                break;
+        }
+
+        if (recent.Count == 0 && hidden == 0)
             throw new NoGamesFoundException(username);
 
-        SelectAndReplay($"{username} — Recent games (UTC)", username, recent);
+        SelectAndReplay($"{username} — Recent games (UTC)", username, recent, hidden);
     }
 
     public async Task RunMonthAsync(string username, GameArchive archive, CancellationToken ct)
@@ -81,11 +98,15 @@ internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
         if (games.Count == 0)
             throw new NoGamesFoundException(username, archive);
 
-        SelectAndReplay($"{username} — Games in {archive} (UTC)", username, games);
+        var playable = games.Where(g => !g.IsChess960).ToList();
+        SelectAndReplay($"{username} — Games in {archive} (UTC)", username, playable, games.Count - playable.Count);
     }
 
-    private void SelectAndReplay(string title, string username, IReadOnlyList<ChessGame> games)
+    private void SelectAndReplay(string title, string username, IReadOnlyList<ChessGame> games, int hiddenChess960)
     {
+        if (games.Count == 0)
+            throw new PgnParseException($"All {hiddenChess960} games are Chess960, which is not supported yet.");
+
         var entries = games
             .OrderByDescending(g => g.EndTime)
             .Select(g => new GameSelector.Entry(g, TryCountMoves(g.Pgn)))
@@ -93,7 +114,7 @@ internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
 
         while (true)
         {
-            var selected = GameSelector.Select(title, username, entries);
+            var selected = GameSelector.Select(title, username, entries, hiddenChess960);
             if (selected is null)
                 return;
 
@@ -116,6 +137,9 @@ internal sealed class ReplayApp(ChessComClient client, VerboseLog log)
 
     private ReplayExit Replay(ChessGame game, string username, bool canGoBack = false)
     {
+        if (game.IsChess960)
+            throw new PgnParseException(Chess960Message);
+
         var board = PgnParser.Parse(game.Pgn);
         var snapshots = ReplayBuilder.Build(board);
         log.Info($"Built {snapshots.Count} board snapshots");

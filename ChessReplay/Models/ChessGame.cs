@@ -8,8 +8,11 @@ public sealed record ChessGame(
     bool Rated,
     Player White,
     Player Black,
-    string Url)
+    string Url,
+    string Rules = "chess")
 {
+    public bool IsChess960 => string.Equals(Rules, "chess960", StringComparison.OrdinalIgnoreCase);
+
     public Player GetPlayer(string username) => IsWhite(username) ? White : Black;
 
     public Player GetOpponent(string username) => IsWhite(username) ? Black : White;
