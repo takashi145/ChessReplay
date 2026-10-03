@@ -8,7 +8,7 @@
     <RootNamespace>ChessReplay</RootNamespace>
     <InvariantGlobalization>false</InvariantGlobalization>
     <AssemblyName>chess-replay</AssemblyName>
-    <Version>0.2.1</Version>
+    <Version>0.2.2</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(RuntimeIdentifier)' != ''">
