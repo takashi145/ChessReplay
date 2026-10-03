@@ -97,6 +97,10 @@ chess-replay <username> --random
 | `B` | Back to game list (when opened from a list) |
 | `Q` / `Esc` | Quit |
 
+## Limitations
+
+- Chess960 games are not supported yet. They are hidden from game lists and skipped by `--random`.
+
 ## License
 
 MIT

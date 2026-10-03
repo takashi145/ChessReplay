@@ -7,7 +7,7 @@ public class ChessGameTests
     private const string WhiteTestUser = "test-white-user";
     private const string BlackTestUser = "test-black-user";
 
-    private static ChessGame MakeGame(string whiteUsername, string blackUsername) => new(
+    private static ChessGame MakeGame(string whiteUsername, string blackUsername, string rules = "chess") => new(
         Pgn: "1. e4 e5",
         EndTime: DateTimeOffset.UnixEpoch,
         TimeControl: "600",
@@ -15,7 +15,20 @@ public class ChessGameTests
         Rated: true,
         White: new Player(whiteUsername, 1500, "win"),
         Black: new Player(blackUsername, 1500, "checkmated"),
-        Url: "https://www.chess.com/game/live/1");
+        Url: "https://www.chess.com/game/live/1",
+        Rules: rules);
+
+    [Theory]
+    [InlineData("chess960", true)]
+    [InlineData("CHESS960", true)]
+    [InlineData("chess", false)]
+    [InlineData("bughouse", false)]
+    public void IsChess960_ReflectsRules(string rules, bool expected)
+    {
+        var game = MakeGame(WhiteTestUser, BlackTestUser, rules);
+
+        Assert.Equal(expected, game.IsChess960);
+    }
 
     [Theory]
     [InlineData("test-white-user")]

@@ -34,6 +34,9 @@ internal sealed class GameDto
     [JsonPropertyName("time_class")]
     public string TimeClass { get; init; } = "";
 
+    [JsonPropertyName("rules")]
+    public string Rules { get; init; } = "chess";
+
     [JsonPropertyName("white")]
     public PlayerDto White { get; init; } = new();
 
