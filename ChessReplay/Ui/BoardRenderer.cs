@@ -5,20 +5,19 @@ namespace ChessReplay.Ui;
 
 public static class BoardRenderer
 {
-    private static readonly Dictionary<(Side, PieceKind), char> Glyphs = new()
+    // Both sides use the same glyphs; the side is distinguished by color only.
+    private const string WhiteColor = "white";
+    private const string BlackColor = "orange1";
+    private const string HighlightBackground = "grey37";
+
+    private static readonly Dictionary<PieceKind, char> Glyphs = new()
     {
-        [(Side.White, PieceKind.King)] = '♔',
-        [(Side.White, PieceKind.Queen)] = '♕',
-        [(Side.White, PieceKind.Rook)] = '♖',
-        [(Side.White, PieceKind.Bishop)] = '♗',
-        [(Side.White, PieceKind.Knight)] = '♘',
-        [(Side.White, PieceKind.Pawn)] = '♙',
-        [(Side.Black, PieceKind.King)] = '♚',
-        [(Side.Black, PieceKind.Queen)] = '♛',
-        [(Side.Black, PieceKind.Rook)] = '♜',
-        [(Side.Black, PieceKind.Bishop)] = '♝',
-        [(Side.Black, PieceKind.Knight)] = '♞',
-        [(Side.Black, PieceKind.Pawn)] = '♟',
+        [PieceKind.King] = '♔',
+        [PieceKind.Queen] = '♕',
+        [PieceKind.Rook] = '♖',
+        [PieceKind.Bishop] = '♗',
+        [PieceKind.Knight] = '♘',
+        [PieceKind.Pawn] = '♙',
     };
 
     // Returns Spectre.Console markup for the 8x8 board only (caller adds header/footer).
@@ -37,10 +36,9 @@ public static class BoardRenderer
             foreach (var file in Files(flipped))
             {
                 var piece = snapshot.Board[file, rank];
-                var glyph = piece is null ? ' ' : Glyphs[(piece.Value.Color, piece.Value.Kind)];
                 var highlighted = snapshot.FromSquare == (file, rank) || snapshot.ToSquare == (file, rank);
 
-                builder.Append(highlighted ? $"[black on yellow]{glyph}[/]" : glyph.ToString());
+                builder.Append(Square(piece, highlighted));
                 builder.Append(' ');
             }
 
@@ -51,6 +49,18 @@ public static class BoardRenderer
         builder.Append("    ").Append(files);
 
         return builder.ToString();
+    }
+
+    private static string Square(BoardPiece? piece, bool highlighted)
+    {
+        if (piece is null)
+        {
+            return highlighted ? $"[on {HighlightBackground}] [/]" : " ";
+        }
+
+        var color = piece.Value.Color == Side.White ? WhiteColor : BlackColor;
+        var style = highlighted ? $"{color} on {HighlightBackground}" : color;
+        return $"[{style}]{Glyphs[piece.Value.Kind]}[/]";
     }
 
     private static IEnumerable<int> Ranks(bool flipped) =>

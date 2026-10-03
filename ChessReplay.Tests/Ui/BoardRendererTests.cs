@@ -11,6 +11,7 @@ public class BoardRendererTests
         var board = new BoardPiece?[8, 8];
         board[4, 0] = new BoardPiece(Side.White, PieceKind.King); // e1
         board[4, 7] = new BoardPiece(Side.Black, PieceKind.King); // e8
+        board[0, 6] = new BoardPiece(Side.Black, PieceKind.Pawn); // a7
 
         return new BoardSnapshot
         {
@@ -27,8 +28,19 @@ public class BoardRendererTests
     {
         var output = BoardRenderer.Render(MakeSnapshot(), flipped: false);
 
-        Assert.Contains('♔', output);
-        Assert.Contains('♚', output);
+        Assert.Contains("[white]♔[/]", output);
+        Assert.Contains("[orange1]♔[/]", output);
+        Assert.Contains("[orange1]♙[/]", output);
+    }
+
+    [Fact]
+    public void Render_NeverUsesFilledGlyphs()
+    {
+        // U+265F (filled pawn) is drawn as an emoji by some terminals, ignoring the color.
+        var output = BoardRenderer.Render(MakeSnapshot(), flipped: false);
+
+        foreach (var glyph in "♚♛♜♝♞♟")
+            Assert.DoesNotContain(glyph, output);
     }
 
     [Fact]
@@ -52,7 +64,7 @@ public class BoardRendererTests
     {
         var output = BoardRenderer.Render(MakeSnapshot(fromSquare: (4, 0)), flipped: false);
 
-        Assert.Contains("[black on yellow]♔[/]", output);
+        Assert.Contains("[white on grey37]♔[/]", output);
     }
 
     [Fact]
@@ -60,6 +72,6 @@ public class BoardRendererTests
     {
         var output = BoardRenderer.Render(MakeSnapshot(toSquare: (4, 7)), flipped: false);
 
-        Assert.Contains("[black on yellow]♚[/]", output);
+        Assert.Contains("[orange1 on grey37]♔[/]", output);
     }
 }
